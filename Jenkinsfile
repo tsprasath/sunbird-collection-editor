@@ -30,6 +30,7 @@ node() {
                         cd app
                         bower cache clean
                         bower install --force
+                        ls
                         cd ..
                         #gulp build
                         gulp packageCorePlugins
