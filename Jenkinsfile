@@ -9,15 +9,16 @@ node() {
         ansiColor('xterm') {
             stage('Checkout') {
                 cleanWs()
-                def scmVars = checkout scm
-                checkout scm
-                
-                branch_name = 'origin/release-5.1.0'
-                commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                artifact_version = branch_name + '_' + commit_hash
-                sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b release-5.2.0_RC1"
-                echo "artifact_version: " + artifact_version
-            }
+                    checkout scm
+                    commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    branch_name = release-5.1.0
+                    artifact_version = branch_name + "_" + commit_hash
+                    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
+                    sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins"
+                    sh "cd plugins && git checkout origin/release-5.2.0 -b release-5.2.0"
+                    echo "artifact_version: " + artifact_version
+                }  
+
                 stage('Build') {
                     sh """
                         export version_number=${branch_name}
