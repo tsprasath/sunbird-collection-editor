@@ -9,12 +9,12 @@ node() {
         ansiColor('xterm') {
             stage('Checkout') {
                 cleanWs()
-                    checkoutscm 
-                    sh "git checkout origin/release-5.1.0 -b release-5.1.0"
-                    commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    sh "git clone https://github.com/tsprasath/sunbird-collection-editor collection-editor"
+                    sh "cd collection-editor && git checkout origin/release-5.1.0 -b release-5.1.0"
+                    //commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     branch_name = release-5.1.0
-                    artifact_version = branch_name + "_" + commit_hash
-                    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
+                    artifact_version = branch_name 
+                    //println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
                     sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins"
                     sh "cd plugins && git checkout origin/release-5.2.0 -b release-5.2.0"
                     echo "artifact_version: " + artifact_version
@@ -23,7 +23,7 @@ node() {
                 stage('Build') {
                     sh """
                         export version_number=${branch_name}
-                        export build_number=${commit_hash}
+                      //  export build_number=${commit_hash}
                         rm -rf collection-editor
                         node -v
                         npm -v                        
