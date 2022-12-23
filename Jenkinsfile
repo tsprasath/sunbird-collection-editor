@@ -23,7 +23,6 @@ node() {
                 stage('Build') {
                     sh """
                         export version_number=${branch_name}
-                      //  export build_number=${commit_hash}
                         rm -rf collection-editor
                         node -v
                         npm -v                        
@@ -51,7 +50,6 @@ node() {
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${artifact_version}"
                 }
-            }
         }
     }
     catch (err) {
