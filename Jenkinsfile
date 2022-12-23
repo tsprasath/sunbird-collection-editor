@@ -9,7 +9,8 @@ node() {
         ansiColor('xterm') {
             stage('Checkout') {
                 cleanWs()
-                    checkout scm
+                    checkoutscm 
+                    sh "git checkout origin/release-5.1.0 -b release-5.1.0"
                     commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     branch_name = release-5.1.0
                     artifact_version = branch_name + "_" + commit_hash
