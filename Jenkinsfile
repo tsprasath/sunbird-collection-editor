@@ -9,14 +9,14 @@ node() {
         ansiColor('xterm') {
             stage('Checkout') {
                 cleanWs()
-                if (params.github_release_tag == "release-5.1.0") {
+                if (params.github_release_tag == "") {
                     checkout scm
                     commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
+                    branch_name ='release-5.1.0'
                     artifact_version = branch_name + "_" + commit_hash
                     println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
                     sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins"
-                    sh "cd plugins && git checkout origin/${branch_name} -b ${branch_name}"
+                    sh "cd plugins && git checkout origin/release-5.1.0 -b release-5.1.0"
                 } else {
                     def scmVars = checkout scm
                     checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/${params.github_release_tag}"]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
