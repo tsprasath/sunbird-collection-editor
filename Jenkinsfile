@@ -11,10 +11,11 @@ node() {
                 cleanWs()
                 def scmVars = checkout scm
                 checkout scm
-                commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                
                 branch_name = 'origin/release-5.1.0'
+                commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                 artifact_version = branch_name + '_' + commit_hash
-                sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b ${branch}"
+                sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins -b release-5.2.0_RC1"
                 echo "artifact_version: " + artifact_version
             }
                 stage('Build') {
