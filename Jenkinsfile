@@ -9,20 +9,34 @@ node() {
         ansiColor('xterm') {
             stage('Checkout') {
                 cleanWs()
-                    sh "git clone https://github.com/tsprasath/sunbird-collection-editor collection-editor"
-                    sh "cd collection-editor && git checkout origin/release-5.1.0 -b release-5.1.0"
-                    //commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    branch_name = 'release-5.1.0'
-                    artifact_version = branch_name 
-                    //println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
+                if (params.github_release_tag == "") {
+                    checkout scm
+                    commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
+                    artifact_version = branch_name + "_" + commit_hash
+                    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
                     sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins"
-                    sh "cd plugins && git checkout origin/release-5.2.0 -b release-5.2.0"
-                    echo "artifact_version: " + artifact_version
-                }  
+                    sh "cd plugins && git checkout origin/${branch_name} -b ${branch_name}"
+                } else {
+                    def scmVars = checkout scm
+                    checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/${params.github_release_tag}"]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
+                    artifact_version = params.github_release_tag
+                    commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    branch_name = params.github_release_tag.split('_')[0].split('\\.')[0] + "." + params.github_release_tag.split('_')[0].split('\\.')[1]
+                    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag specified, building from github_release_tag: " + params.github_release_tag + ANSI_NORMAL)
+                    sh "git clone https://github.com/project-sunbird/sunbird-content-plugins.git plugins"
+                    sh """
+                        cd plugins
+                        checkout_tag=\$(git ls-remote --tags origin $branch_name* | grep -o "$branch_name.*" | sort -V | tail -n1)
+                        git checkout tags/\${checkout_tag} -b \${checkout_tag}
+                    """
+                }
+                echo "artifact_version: " + artifact_version
 
                 stage('Build') {
                     sh """
                         export version_number=${branch_name}
+                        export build_number=${commit_hash}
                         rm -rf collection-editor
                         node -v
                         npm -v                        
@@ -30,7 +44,6 @@ node() {
                         cd app
                         bower cache clean
                         bower install --force
-                        ls -la
                         cd ..
                         #gulp build
                         gulp packageCorePlugins
@@ -51,6 +64,7 @@ node() {
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${artifact_version}"
                 }
+            }
         }
     }
     catch (err) {
